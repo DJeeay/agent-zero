@@ -6,7 +6,8 @@ Welcome to the Agent Zero documentation hub. Whether you're getting started or d
 ## Quick Start
 
 - **[Quickstart Guide](quickstart.md):** Get up and running in 5 minutes with Agent Zero.
-- **[Installation Guide](setup/installation.md):** Detailed setup instructions for all platforms (or [update your installation](setup/installation.md#how-to-update-agent-zero)).
+- **[Installation Guide](setup/installation.md):** Install scripts, updates, and advanced Docker setup (includes [How to Update](setup/installation.md#how-to-update-agent-zero)).
+- **[Self Update](guides/self-update.md):** How the in-app updater works (technical reference).
 - **[VPS Deployment](setup/vps-deployment.md):** Deploy Agent Zero on a remote server.
 - **[Development Setup](setup/dev-setup.md):** Set up a local development environment.
 
@@ -22,6 +23,7 @@ Welcome to the Agent Zero documentation hub. Whether you're getting started or d
 ## Developer Documentation
 
 - **[Architecture Overview](developer/architecture.md):** Understand Agent Zero's internal structure and components.
+- **[Plugins](developer/plugins.md):** Build plugins with `plugin.yaml`, scoped settings, and activation toggles.
 - **[Extensions](developer/extensions.md):** Create custom extensions to extend functionality.
 - **[Connectivity](developer/connectivity.md):** Connect to Agent Zero from external applications.
 - **[WebSockets](developer/websockets.md):** Real-time communication infrastructure.
@@ -44,6 +46,8 @@ Welcome to the Agent Zero documentation hub. Whether you're getting started or d
 - [Quick Start](#quick-start)
   - [Quickstart Guide](quickstart.md)
   - [Installation Guide](setup/installation.md)
+    - [How to Update Agent Zero](setup/installation.md#how-to-update-agent-zero)
+    - [Manual Installation (Advanced)](setup/installation.md#manual-installation-advanced)
     - [Step 1: Install Docker Desktop](setup/installation.md#step-1-install-docker-desktop)
       - [Windows Installation](setup/installation.md#-windows-installation)
       - [macOS Installation](setup/installation.md#-macos-installation)
@@ -62,13 +66,14 @@ Welcome to the Agent Zero documentation hub. Whether you're getting started or d
     - [Choosing Your LLMs](setup/installation.md#choosing-your-llms)
     - [Installing Ollama (Local Models)](setup/installation.md#installing-and-using-ollama-local-models)
     - [Using on Mobile Devices](setup/installation.md#using-agent-zero-on-your-mobile-device)
-    - [How to Update Agent Zero](setup/installation.md#how-to-update-agent-zero)
+  - [Self Update (technical)](guides/self-update.md)
   - [VPS Deployment](setup/vps-deployment.md)
   - [Development Setup](setup/dev-setup.md)
 
 - [User Guides](#user-guides)
   - [Usage Guide](guides/usage.md)
     - [Basic Operations](guides/usage.md#basic-operations)
+    - [Plugins and Plugin Hub](guides/usage.md#plugins-and-plugin-hub)
     - [Tool Usage](guides/usage.md#tool-usage)
     - [Projects](guides/usage.md#projects)
       - [What Projects Provide](guides/usage.md#what-projects-provide)
@@ -105,6 +110,7 @@ Welcome to the Agent Zero documentation hub. Whether you're getting started or d
       - [Knowledge](developer/architecture.md#5-knowledge)
       - [Skills](developer/architecture.md#6-skills)
       - [Extensions](developer/architecture.md#7-extensions)
+  - [Plugins](developer/plugins.md)
   - [Extensions](developer/extensions.md)
   - [Connectivity](developer/connectivity.md)
   - [WebSockets](developer/websockets.md)

@@ -16,7 +16,7 @@ RUN bash /ins/pre_install.sh $BRANCH && \
     bash /ins/install_additional.sh $BRANCH && \
     bash /ins/install_A02.sh $BRANCH && \
     bash /ins/post_install.sh $BRANCH && \
-    chmod +x /exe/initialize.sh /exe/run_A0.sh /exe/run_searxng.sh /exe/run_tunnel_api.sh && \
+    chmod +x /exe/initialize.sh /exe/run_A0.sh /exe/run_searxng.sh /exe/run_tunnel_api.sh /exe/trigger_self_update.sh && \
     rm -rf /tmp/* /var/tmp/* /var/cache/apt/* && \
     find /git/agent-zero -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 

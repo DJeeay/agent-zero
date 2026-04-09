@@ -250,6 +250,51 @@ def _is_transient_litellm_error(exc: Exception) -> bool:
     return isinstance(exc, transient_types)
 
 
+def _is_fallback_error(exc: Exception) -> bool:
+    """Check if error requires switching to fallback provider"""
+    status_code = getattr(exc, "status_code", None)
+    if isinstance(status_code, int):
+        # 401: Unauthorized (bad API key)
+        # 402: Payment Required (credits exhausted)
+        # 404: Not Found (wrong endpoint/model)
+        # 413: Payload Too Large (Groq token limit)
+        # 429: Rate Limit (too many requests)
+        return status_code in (401, 402, 404, 413, 429)
+    
+    # Check for provider-specific error codes in exception message
+    exc_str = str(exc).lower()
+    fallback_indicators = [
+        "rate_limit_exceeded",
+        "rate limit",
+        "too large",
+        "token",
+        "credits",
+        "payment required",
+        "unauthorized"
+    ]
+    return any(indicator in exc_str for indicator in fallback_indicators)
+
+
+# Fallback chain configuration: current_provider -> fallback_provider -> next_fallback
+FALLBACK_CHAIN = {
+    # Primary fallbacks
+    "groq": ("openrouter", "llama-3.2-3b-instruct:free"),
+    "openrouter": ("groq", "llama-3.3-70b-versatile"),
+    "nvidia": ("groq", "llama-3.3-70b-versatile"),
+    "ollama": ("groq", "llama-3.3-70b-versatile"),
+    "anthropic": ("groq", "llama-3.3-70b-versatile"),
+    "openai": ("groq", "llama-3.3-70b-versatile"),
+    # Second-level fallbacks
+    "groq_alt": ("ollama", "llama3.2"),
+    "openrouter_alt": ("ollama", "llama3.2"),
+}
+
+
+def _get_fallback_provider(current_provider: str) -> tuple[str, str] | None:
+    """Get fallback provider and model for current provider"""
+    return FALLBACK_CHAIN.get(current_provider.lower())
+
+
 async def apply_rate_limiter(
     model_config: ModelConfig | None,
     input_text: str,
@@ -474,6 +519,7 @@ class LiteLLMChatWrapper(SimpleChatModel):
             Callable[[str, str, int, int], Awaitable[bool]] | None
         ) = None,
         explicit_caching: bool = False,
+        _fallback_count: int = 0,
         **kwargs: Any,
     ) -> Tuple[str, str]:
 
@@ -565,6 +611,39 @@ class LiteLLMChatWrapper(SimpleChatModel):
             except Exception as e:
                 import asyncio
 
+                # Check if we should try fallback provider
+                if _is_fallback_error(e) and not got_any_chunk and _fallback_count < 2:
+                    fallback = _get_fallback_provider(self.provider)
+                    if fallback:
+                        fallback_provider, fallback_model = fallback
+                        print(f"⚠️  Provider {self.provider} failed with {getattr(e, 'status_code', 'unknown')}, switching to {fallback_provider}...")
+                        
+                        # Create new wrapper with fallback provider
+                        try:
+                            fallback_wrapper = _get_litellm_chat(
+                                LiteLLMChatWrapper,
+                                fallback_model,
+                                fallback_provider,
+                                self.a0_model_conf,
+                                **self.kwargs
+                            )
+                            # Retry with fallback, increment counter
+                            return await fallback_wrapper.unified_call(
+                                system_message="",
+                                user_message="",
+                                messages=messages,
+                                response_callback=response_callback,
+                                reasoning_callback=reasoning_callback,
+                                tokens_callback=tokens_callback,
+                                rate_limiter_callback=rate_limiter_callback,
+                                explicit_caching=explicit_caching,
+                                _fallback_count=_fallback_count + 1,
+                                **kwargs
+                            )
+                        except Exception as fallback_error:
+                            print(f"❌ Fallback to {fallback_provider} also failed: {fallback_error}")
+                            # Continue to normal retry logic
+                
                 # Retry only if no chunks received and error is transient
                 if got_any_chunk or not _is_transient_litellm_error(e) or attempt >= max_retries:
                     raise

@@ -1,11 +1,11 @@
 {
-  "name": "Hermes-LLM",
-  "description": "Local Hermes via llama.cpp server (OpenAI-compatible)",
+  "name": "LMStudio-Nemotron",
+  "description": "NVIDIA Nemotron 3 Nano via LM Studio",
   "type": "openai",
-  "base_url": "http://localhost:9000/v1",
+  "base_url": "http://localhost:1234/v1",
   "api_key": "dummy",
-  "model": "hermes-3",
-  "timeout": 120,
-  "max_tokens": 512,
+  "model": "nvidia-nemotron-3-nano-4b",
+  "timeout": 60,
+  "max_tokens": 1024,
   "temperature": 0.7
 }

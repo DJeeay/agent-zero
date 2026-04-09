@@ -127,8 +127,20 @@ async def stream_chat_chunks(
                         data = json.loads(data_str)
                     except json.JSONDecodeError:
                         continue
+                    # Extraction du token (support llama.cpp et format OpenAI/LM Studio)
                     token = data.get("content", "")
                     is_last = data.get("stop", False)
+
+                    if not token and "choices" in data:
+                        choices = data.get("choices", [])
+                        if choices:
+                            delta = choices[0].get("delta", {})
+                            token = delta.get("content", "")
+                            is_last = choices[0].get("finish_reason") is not None
+
+                    if not token and not is_last:
+                        continue
+
                     chunk = {
                         "id": chunk_id,
                         "object": "chat.completion.chunk",
@@ -136,7 +148,7 @@ async def stream_chat_chunks(
                         "model": req.model,
                         "choices": [{
                             "index": 0,
-                            "delta": {"role": "assistant", "content": token} if token else {},
+                            "delta": {"content": token} if token else {},
                             "finish_reason": "stop" if is_last else None,
                         }],
                     }

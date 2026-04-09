@@ -1,0 +1,20 @@
+presparc-notion/
+│
+├── SKILL.md                    ← LU par l'agent avant toute action
+│
+├── lib/                        ← Tes utils existants, recopiés
+│   ├── notion_api.py           ← (ton utils/notion_api.py)
+│   ├── logger.py               ← (ton utils/logger.py)
+│   └── validators.py           ← (ton utils/validators.py)
+│
+├── tasks/                      ← Tes scripts opérationnels
+│   ├── check_integrity.py      ← (ton check_portal_integrity.py)
+│   ├── generate_report.py      ← (ton generate_monthly_report.py)
+│   └── manage_comments.py      ← (ton manage_comments.py)
+│
+├── schema/                     ← Connaissance structurelle de Notion
+│   ├── databases.json          ← IDs + schéma de chaque base
+│   └── procedures_v1.md        ← Procédures validées versionnées
+│
+└── config/
+    └── config.yaml             ← (ton config.yaml, sans secrets)

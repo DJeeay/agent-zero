@@ -1,0 +1,268 @@
+---
+# REGISTRY.yaml - Source of Truth for Docker Infrastructure
+# Document central de vérité pour l'infrastructure Docker
+# Last updated: 2025-04-05
+
+metadata:
+  project: "Docker Cont 1 AZ"
+  version: "1.0"
+  maintainer: "Gordon (Documentation Manager)"
+  last_updated: "2025-04-05"
+  update_frequency: "weekly"
+
+# === CONTAINERS ===
+containers:
+  llama-server:
+    name: "llama-server"
+    image: "ghcr.io/ggml-org/llama.cpp:full-cuda"
+    port: 8080
+    status: "active"
+    volume: "d:/llm_models (RO)"
+    network: "hermes-agent_default"
+    gpu: "CUDA_VISIBLE_DEVICES=0"
+    memory_limit: "12G"
+    model: "Hermes-3-Llama-3.1-8B.Q4_K_M.gguf"
+    documentation: "REFERENCE/10_REFERENCE_CONTAINERS_ANALYSIS.md"
+    health_check: "curl http://localhost:8080/health"
+    restart_policy: "unless-stopped"
+    
+  llamacpp:
+    name: "llamacpp"
+    image: "ghcr.io/ggml-org/llama.cpp:full-cuda"
+    port: 8081
+    status: "active"
+    volume: "D:\\DOCKER Cont 1 AZ\\models (RW)"
+    network: "dockercont1az_default + agent-zero-network"
+    gpu: "All devices (-1)"
+    memory_limit: "16G"
+    model: "Hermes-3-Llama-3.1-8B.Q4_K_M.gguf"
+    documentation: "REFERENCE/10_REFERENCE_CONTAINERS_ANALYSIS.md"
+    health_check: "curl http://localhost:8081/health"
+    restart_policy: "unless-stopped"
+    notes: "Backup server with different config (batch 1024, GPU layers 35)"
+    
+  agent-zero:
+    name: "agent-zero"
+    image: "agent0ai/agent-zero:latest"
+    port: 50080
+    status: "active"
+    volume: "AGENT0Volume"
+    network: "agent-zero-network"
+    gpu: "none (API calls to LLM servers)"
+    memory_limit: "unlimited"
+    documentation: "DEPLOYMENT/30_DEPLOYMENT_AGENT_ZERO_AUTH_ERROR.md"
+    restart_policy: "default"
+    notes: "Orchestrator agent, no direct GPU access"
+
+# Stopped containers (for reference)
+  hermes-3b-fixed:
+    name: "hermes-3b-fixed"
+    status: "stopped"
+    exit_code: 137
+    reason: "OOM/Timeout"
+    stopped_since: "3 days"
+    
+  hermes-3b:
+    name: "hermes-3b"
+    status: "stopped"
+    exit_code: 137
+    reason: "OOM/Timeout"
+    stopped_since: "4 days"
+    
+  hermes-3b-8k:
+    name: "hermes-3b-8k"
+    status: "stopped"
+    exit_code: 1
+    reason: "General error"
+    stopped_since: "4 days"
+
+# === PROJECTS ===
+projects:
+  dockercont1az:
+    name: "Docker Cont 1 AZ"
+    path: "D:\\DOCKER Cont 1 AZ"
+    containers:
+      - llama-server
+      - llamacpp
+      - agent-zero
+    documentation_root: "_DOCUMENTATION/"
+    status: "active"
+    primary_language: "Python"
+    frameworks:
+      - "Agent Zero"
+      - "llama.cpp"
+    
+  presence-parcours:
+    name: "Presence-Parcours"
+    path: "H:\\PROJECTS\\Projet_Presence-Parcours"
+    containers:
+      - presence_llamacpp (stopped)
+      - presence_agent (stopped)
+    status: "inactive"
+    last_active: "12 days ago"
+
+# === MODELS ===
+models:
+  hermes-3-8b:
+    name: "Hermes-3-Llama-3.1-8B.Q4_K_M.gguf"
+    path: "d:/llm_models/Hermes-3-Llama-3.1-8B.Q4_K_M.gguf"
+    size: "4.7GB"
+    format: "GGUF Q4_K_M"
+    parameters: "8B"
+    context_size: 16384
+    containers:
+      - llama-server
+      - llamacpp
+    documentation: "REFERENCE/10_REFERENCE_CONTAINERS_ANALYSIS.md"
+    primary_use: "Production inference"
+    
+  alternative-models:
+    available:
+      - "qwen2.5-7b-instruct-q4_k_m.gguf (4.6GB)"
+      - "gemma-3-4b-it-Q4_K_M.gguf"
+    path: "d:/llm_models/"
+
+# === NETWORKS ===
+networks:
+  agent-zero-network:
+    driver: "bridge"
+    containers:
+      - agent-zero
+      - llamacpp
+    subnet: "172.23.0.0/16"
+    
+  dockercont1az_default:
+    driver: "bridge"
+    containers:
+      - llama-server
+      - llamacpp
+    subnet: "172.19.0.0/16"
+    
+  hermes-agent_default:
+    driver: "bridge"
+    containers:
+      - llama-server
+
+# === VOLUMES ===
+volumes:
+  named:
+    AGENT0Volume:
+      type: "named"
+      used_by: "agent-zero"
+      purpose: "Persistent agent state"
+      backup_required: true
+      
+  anonymous:
+    count: 29
+    note: "Mostly orphaned, cleanup recommended"
+    
+  bind_mounts:
+    llm_models:
+      host_path: "d:/llm_models"
+      container_path: "/models"
+      mode: "RO"
+      used_by: "llama-server"
+      
+    models_rw:
+      host_path: "D:\\DOCKER Cont 1 AZ\\models"
+      container_path: "/models"
+      mode: "RW"
+      used_by: "llamacpp"
+
+# === DOCUMENTATION INDEX ===
+documentation:
+  entry_point: "00_START.md"
+  navigation_hub: "01_INDEX.md"
+  
+  reference:
+    - file: "10_REFERENCE_CONTAINERS_ANALYSIS.md"
+      title: "Containers Analysis"
+      audience: ["Architect", "SRE"]
+      
+    - file: "11_REFERENCE_RESUME_VISUAL.md"
+      title: "Visual Summary"
+      audience: ["Manager", "All"]
+      
+  operations:
+    - file: "20_OPERATIONS_COMMANDS.md"
+      title: "Command Cheat Sheet"
+      audience: ["Ops", "SRE"]
+      
+    - file: "21_OPERATIONS_FIXES.md"
+      title: "Applied Fixes"
+      audience: ["DevOps", "Ops"]
+      
+    - file: "22_OPERATIONS_VERIFICATION.md"
+      title: "Verification Procedures"
+      audience: ["Ops", "QA"]
+      
+  deployment:
+    - file: "30_DEPLOYMENT_AGENT_ZERO_AUTH_ERROR.md"
+      title: "Agent Zero Auth Fix"
+      audience: ["Developer", "DevOps"]
+      
+    - file: "31_DEPLOYMENT_LOCAL_SETUP.md"
+      title: "Local Setup Guide"
+      audience: ["Developer", "New User"]
+      
+  analysis:
+    - file: "40_ANALYSIS_PROBLEMS_SOLUTIONS.md"
+      title: "Problems & Solutions"
+      audience: ["Engineer", "Architect"]
+      
+  templates:
+    - file: "50_TEMPLATES_DOCKER_COMPOSE.yml"
+      title: "Docker Compose Template"
+      audience: ["DevOps", "SRE"]
+
+# === CRITICAL ISSUES ===
+issues:
+  gpu_contention:
+    severity: "medium"
+    description: "llamacpp uses all GPUs (-1), llama-server uses GPU 0"
+    impact: "Resource contention if single GPU"
+    solution: "Assign specific GPU to each or stop llamacpp"
+    documentation: "REFERENCE/10_REFERENCE_CONTAINERS_ANALYSIS.md"
+    
+  memory_limits:
+    severity: "low"
+    description: "llama-server memory now limited to 12GB"
+    impact: "Prevents system crash from OOM"
+    status: "resolved"
+    
+  orphaned_volumes:
+    severity: "low"
+    description: "29 anonymous volumes may be orphaned"
+    impact: "Disk space usage"
+    solution: "docker volume prune (after verification)"
+    documentation: "OPERATIONS/20_OPERATIONS_COMMANDS.md"
+
+# === MAINTENANCE SCHEDULE ===
+maintenance:
+  daily:
+    - "Check container logs"
+    - "Monitor GPU usage"
+    - "Verify health checks"
+    
+  weekly:
+    - "Update REGISTRY.yaml"
+    - "Review documentation links"
+    - "Check for orphaned volumes"
+    
+  monthly:
+    - "Full documentation audit"
+    - "Update architecture diagrams"
+    - "Performance review"
+    
+  quarterly:
+    - "Major documentation review"
+    - "Training/onboarding update"
+    - "Template updates"
+
+# === QUICK LINKS ===
+links:
+  start_here: "00_START.md"
+  index: "01_INDEX.md"
+  troubleshooting: "OPERATIONS/20_OPERATIONS_COMMANDS.md"
+  architecture: "REFERENCE/10_REFERENCE_CONTAINERS_ANALYSIS.md"
+  templates: "TEMPLATES/50_TEMPLATES_DOCKER_COMPOSE.yml"

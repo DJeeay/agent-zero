@@ -1,0 +1,76 @@
+# syntax=docker/dockerfile:1
+# Agent Zero Production Dockerfile
+# Optimized for security, performance, and reliability
+
+# ═════════════════════════════════════════════════════════════════════════════
+# STAGE: Base - Minimal dependencies (cached layer, reusable)
+# ═════════════════════════════════════════════════════════════════════════════
+FROM agent0ai/agent-zero-base:latest AS base
+
+# Set build arguments and environment variables
+ARG BRANCH=main
+ARG CACHE_DATE=none
+
+# Use build cache mount for apt caches (requires --mount=type=cache flag)
+# This prevents Docker from storing OS package caches in the final image
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+      ca-certificates \
+      curl \
+      procps && \
+    rm -rf /var/lib/apt/lists/*
+
+# Set non-root user for security (optional: uncomment if base image doesn't already do this)
+# USER agent:agent
+
+ENV BRANCH=$BRANCH \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# ═════════════════════════════════════════════════════════════════════════════
+# STAGE: Builder - Copy and install application
+# ═════════════════════════════════════════════════════════════════════════════
+FROM base AS builder
+
+# Copy filesystem templates first (stable, rarely changes)
+COPY ./docker/run/fs/ /
+
+# Copy application code last (most likely to change, better for layer caching)
+COPY ./ /git/agent-zero
+
+# Run installation steps in a single RUN layer to minimize image size
+# Uses && chain to fail fast on errors
+RUN bash /ins/pre_install.sh $BRANCH && \
+    bash /ins/install_A0.sh $BRANCH && \
+    bash /ins/install_additional.sh $BRANCH && \
+    echo "cache buster $CACHE_DATE" && \
+    bash /ins/install_A02.sh $BRANCH && \
+    bash /ins/post_install.sh $BRANCH
+
+# Make startup scripts executable
+RUN chmod +x /exe/initialize.sh /exe/run_A0.sh /exe/run_searxng.sh /exe/run_tunnel_api.sh
+
+# ═════════════════════════════════════════════════════════════════════════════
+# STAGE: Runtime - Final production image
+# ═════════════════════════════════════════════════════════════════════════════
+FROM base AS runtime
+
+# Copy only necessary artifacts from builder (not build tools/caches)
+COPY --from=builder / /
+
+# Expose ports
+EXPOSE 22 80 9000-9009
+
+# Health check: Verify initialization service is responsive
+# Adjust the port/endpoint based on your actual health check requirements
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:9000/health || exit 1
+
+# Set working directory for better container introspection
+WORKDIR /git/agent-zero
+
+# Initialize runtime and switch to supervisord
+# Use exec form to ensure proper signal handling
+CMD ["/exe/initialize.sh", "$BRANCH"]

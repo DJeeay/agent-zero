@@ -1,0 +1,119 @@
+---
+# CAgent Configuration for Agent Zero + Hermes-3 Local
+# Utilise l'adaptateur FastAPI OpenAI-compatible (port 9000)
+
+name: cagent-hermes
+version: "1.1"
+description: |
+  CAgent integre avec Agent Zero et Hermes-3 local (8B Q4).
+  Architecture: FastAPI adapter + llama.cpp + Docker.
+
+# Configuration LLM - Utilise l'adaptateur local
+model: openai/hermes-3
+model_config:
+  base_url: http://localhost:9000/v1
+  api_key: "dummy"
+  temperature: 0.7
+  max_tokens: 2048
+  timeout: 120
+
+# Fallback (optionnel - si local indisponible)
+fallback_models:
+  - openai/gpt-4o-mini
+  - anthropic/claude-3.5-sonnet
+
+# Personnalite de l'agent
+instructions: |
+  Tu es CAgent, un agent specialise pour le framework Agent Zero avec Hermes-3 local.
+  
+  Expertises:
+  1. Architecture Agent Zero: FastAPI, llama.cpp, Docker Compose
+  2. Maintenance: adapter.py, docker-compose.yml, configuration
+  3. Debug: Logs Docker, health checks, endpoints API
+  4. Extension: Nouveaux endpoints, features, integrations
+  
+  Contraintes systeme:
+  - Modele: Hermes-3-Llama-3.1-8B.Q4_K_M (8B params, 4-bit quantise)
+  - Contexte max: 16384 tokens
+  - GPU: NVIDIA CUDA avec 35 layers offload
+  - RAM: 12GB allouee au conteneur llama-server
+  - Timeout adaptateur: 120s
+  
+  Patterns critiques:
+  1. Compatibilite OpenAI: maintenir /v1/chat/completions
+  2. Format ChatML: <|im_start|>system/user/assistant
+  3. Stop tokens:  </s>
+  4. Retro-compatibilite endpoint /query
+  
+  Fichiers essentiels:
+  - adapter/adapter.py (300 lignes) - Cœur adaptateur FastAPI
+  - docker-compose.yml - 2 services Docker
+  - agent-config.json - Config type: openai
+  - .env - Variables d'environnement
+  
+  Commandes Docker:
+  - docker-compose up -d (demarrer)
+  - docker logs -f hermes (logs adapter)
+  - docker logs -f llama-server (logs LLM)
+  - docker-compose restart (redemarrer)
+
+# Outils disponibles
+tools:
+  # Operations fichiers
+  - type: read_file
+  - type: write_file
+  - type: list_directory
+  
+  # Commandes shell
+  - type: shell
+    allow_list:
+      - docker
+      - docker-compose
+      - curl
+      - python
+      - git
+      - powershell
+  
+  # Execution Python
+  - type: python
+    packages:
+      - requests
+      - httpx
+      - pydantic
+
+# Memoire et apprentissage
+memory:
+  enabled: true
+  type: vector
+  persistence:
+    location: ./agent_memory/cagent
+    backup_interval: 3600
+
+# Raisonnement
+thinking:
+  enabled: true
+  max_depth: 3
+
+# Resilience
+resilience:
+  max_retries: 3
+  timeout_seconds: 120
+  circuit_breaker: true
+  fallback_on_error: true
+
+# Logging
+logging:
+  level: "INFO"
+  outputs:
+    - type: console
+    - type: file
+      path: ./logs/cagent.log
+      max_size_mb: 100
+      backup_count: 5
+
+# Variables d'environnement
+environment:
+  HERMES_API_URL: http://localhost:9000/v1/chat/completions
+  LLAMA_URL: http://llama-server:8080
+  MODEL_NAME: hermes-3
+  LOG_LEVEL: INFO

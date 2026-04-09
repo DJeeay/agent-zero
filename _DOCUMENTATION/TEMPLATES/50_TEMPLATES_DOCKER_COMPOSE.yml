@@ -1,0 +1,132 @@
+# Docker Compose Template - LLM Infrastructure
+# Template réutilisable pour déploiement Docker standardisé
+
+version: '3.8'
+
+services:
+  # Service LLM Principal
+  llama-server:
+    image: ghcr.io/ggml-org/llama.cpp:full-cuda
+    container_name: llama-server
+    ports:
+      - "8080:8080"
+    
+    volumes:
+      - {{MODELS_PATH}}:/models:ro
+    
+    environment:
+      CUDA_VISIBLE_DEVICES: {{GPU_DEVICE_ID}}
+    
+    command: >
+      --server
+      -m /models/{{MODEL_NAME}}
+      --host 0.0.0.0
+      --port 8080
+      -c {{CONTEXT_SIZE}}
+      --n-gpu-layers {{GPU_LAYERS}}
+      --threads {{THREADS}}
+    
+    deploy:
+      resources:
+        limits:
+          memory: {{MEMORY_LIMIT}}
+          cpus: '{{CPU_LIMIT}}'
+        reservations:
+          memory: {{MEMORY_RESERVATION}}
+          cpus: '{{CPU_RESERVATION}}'
+    
+    runtime: nvidia
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    
+    restart: unless-stopped
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+    
+    networks:
+      - {{NETWORK_NAME}}
+    
+    labels:
+      service: "llm-inference"
+      version: "{{VERSION}}"
+
+  # Service Agent Autonome
+  agent-zero:
+    image: agent0ai/agent-zero:{{AGENT_VERSION}}
+    container_name: agent-zero
+    ports:
+      - "{{AGENT_PORT}}:80"
+    
+    volumes:
+      - {{AGENT_STATE_VOLUME}}:/app/state
+    
+    restart: unless-stopped
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "2"
+    
+    depends_on:
+      llama-server:
+        condition: service_healthy
+    
+    networks:
+      - {{NETWORK_NAME}}
+      - {{AGENT_NETWORK}}
+    
+    labels:
+      service: "agent"
+      version: "{{AGENT_VERSION}}"
+
+networks:
+  {{NETWORK_NAME}}:
+    driver: bridge
+  
+  {{AGENT_NETWORK}}:
+    driver: bridge
+
+volumes:
+  {{AGENT_STATE_VOLUME}}:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: {{AGENT_STATE_PATH}}
+
+# --- VARIABLES TEMPLATE ---
+# Remplacez les valeurs entre {{}} par vos configurations:
+#
+# {{MODELS_PATH}}       - Chemin vers les modèles (ex: d:/llm_models)
+# {{MODEL_NAME}}        - Nom du modèle GGUF (ex: Hermes-3-Llama-3.1-8B.Q4_K_M.gguf)
+# {{GPU_DEVICE_ID}}     - ID GPU (ex: 0)
+# {{CONTEXT_SIZE}}      - Taille contexte (ex: 16384)
+# {{GPU_LAYERS}}        - Couches GPU (ex: 20)
+# {{THREADS}}           - Threads CPU (ex: 8)
+# {{MEMORY_LIMIT}}      - Limite mémoire (ex: 12G)
+# {{CPU_LIMIT}}         - Limite CPU (ex: 4)
+# {{MEMORY_RESERVATION}}- Réservation mémoire (ex: 8G)
+# {{CPU_RESERVATION}}   - Réservation CPU (ex: 2)
+# {{NETWORK_NAME}}      - Nom réseau (ex: hermes-net)
+# {{AGENT_NETWORK}}     - Nom réseau agent (ex: agent-net)
+# {{AGENT_PORT}}        - Port agent (ex: 50080)
+# {{AGENT_STATE_VOLUME}}- Nom volume état (ex: agent0-state)
+# {{AGENT_STATE_PATH}}  - Chemin état agent (ex: ./agent0_state)
+# {{VERSION}}           - Version LLM service (ex: 1.0)
+# {{AGENT_VERSION}}     - Version Agent (ex: latest)
+#
+# --- COMMANDES ---
+# Démarrer:  docker compose up -d
+# Logs:      docker compose logs -f llama-server
+# Stop:      docker compose down
+# Stats:     docker compose stats

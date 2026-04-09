@@ -1,0 +1,160 @@
+================================================================================
+           🔗 HOW TO GET YOUR NOTION DATABASE ID (2 MINUTES)
+================================================================================
+
+Your Hermes agent needs direct access to your Notion student database.
+This requires your database ID.
+
+================================================================================
+                        STEP-BY-STEP GUIDE
+================================================================================
+
+STEP 1: Open Notion in your browser
+  Go to: https://notion.so
+  Log in if needed
+
+STEP 2: Find your student database
+  Look for the database with your students
+  (Could be named "Students", "Class", "Presparc", etc.)
+  Click to open it
+
+STEP 3: Copy the Database ID from URL
+  Look at the browser URL bar:
+  
+  Example URL:
+  https://notion.so/3a1a2b3c4d5e6f7g8h9i0j?v=1234567890
+
+  The DATABASE ID is the long string BEFORE the "?v="
+  In this example: 3a1a2b3c4d5e6f7g8h9i0j
+  
+  ⚠️  IMPORTANT: Remove any hyphens if present
+  Database IDs look like: a1b2c3d4e5f6g7h8i9j0
+
+STEP 4: Copy your ID
+  Select and copy the database ID
+
+STEP 5: Add to .env file
+  Edit: .env
+  Find: NOTION_DATABASE_ID=
+  Add your ID:
+  NOTION_DATABASE_ID=a1b2c3d4e5f6g7h8i9j0
+
+STEP 6: Save .env file
+
+STEP 7: Run Hermes with Notion access
+  python hermes_agent_with_notion.py
+
+  If it says "✅ Notion Database: Connected & Ready"
+  You're all set!
+
+================================================================================
+                        ALTERNATIVE: URL FORMAT
+================================================================================
+
+Modern Notion URLs look different:
+
+https://notion.so/Your-Database-Name-[ID]?v=...
+
+Or:
+
+https://notion.so/workspace/Your-Database-Name-[ID]?v=...
+
+In both cases, find the ID part (usually at the end before ?v=)
+
+The ID is alphanumeric, looks like: a1b2c3d4e5f6g7h8i9j0k
+
+================================================================================
+                        VERIFY YOUR ID
+================================================================================
+
+Once you add the ID to .env and run Hermes:
+
+  python hermes_agent_with_notion.py
+
+You should see:
+
+  ======================================================================
+  🧠 HERMES 3.1-8B - PRÉSENCE-PARCOURS AGENT
+  ======================================================================
+  Model: Hermes 3.1-8B (Local GPU)
+  API: http://localhost:8080/v1/chat/completions
+  ✅ Notion Database: Connected & Ready        ← This means it works!
+  ======================================================================
+
+If you see "❌ Connection Failed":
+  - Check your database ID spelling
+  - Make sure you have permission to access it
+  - Verify API key is correct
+
+================================================================================
+                        WHAT HAPPENS AFTER SETUP
+================================================================================
+
+Once Hermes has Notion access, you can:
+
+"List students"
+  → Shows all students from your Notion database
+
+"Analyze student [name] progress"
+  → Pulls real data from Notion, analyzes it
+
+"Who needs support?"
+  → Queries database, identifies struggling students
+
+"Create student [name]"
+  → Adds new student to Notion database
+
+"Update [name] progress"
+  → Updates student record with new data
+
+"Generate parent report"
+  → Pulls real student data, creates professional report
+
+Everything pulls LIVE DATA from your Notion workspace!
+
+================================================================================
+                        HERMES WITH NOTION ACCESS
+================================================================================
+
+Your setup will be:
+
+Your Notion Workspace (Cloud)
+         ↓
+    NOTION API
+         ↓
+Hermes Agent (Local, on your D: drive)
+         ├─→ Real-time student data
+         ├─→ Live progress tracking
+         ├─→ Automatic report generation
+         └─→ Data-driven analysis
+
+Direct connection. No intermediaries. No delays.
+
+================================================================================
+                        READY? LET'S GO!
+================================================================================
+
+1. Get your Notion database ID (1 minute)
+   - Open Notion workspace
+   - Find student database
+   - Copy ID from URL
+
+2. Edit .env (30 seconds)
+   - Add: NOTION_DATABASE_ID=your_id_here
+
+3. Run Hermes (30 seconds)
+   - python hermes_agent_with_notion.py
+   - Should see ✅ Notion Database: Connected & Ready
+
+4. Start using! (unlimited)
+   - "List students"
+   - "Analyze progress"
+   - "Generate reports"
+
+================================================================================
+
+Next: Get your database ID, add it to .env, then run:
+
+  python hermes_agent_with_notion.py
+
+================================================================================

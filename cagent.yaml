@@ -1,0 +1,109 @@
+---
+# Docker Agent for Présence-Parcours
+# Simplified configuration - uses local LLM via OpenAI-compatible API
+
+name: presparc-agent
+version: "1.0"
+description: |
+  AI agent specialized in Présence-Parcours educational management.
+  Handles student tracking, lesson planning, progress analysis.
+
+# Model configuration
+# Local LLM is accessed via HTTP (OpenAI-compatible endpoint)
+model: openai/gpt-3.5-turbo
+model_config:
+  base_url: http://llm-server-presparc:8080/v1
+  api_key: "local"
+
+# Fallback models (if local LLM fails)
+fallback_models:
+  - openai/gpt-4o-mini
+  - anthropic/claude-3.5-sonnet
+
+# Agent personality
+instructions: |
+  You are an expert AI assistant specialized in Présence-Parcours educational methodology.
+  
+  Your primary responsibilities:
+  1. Student Management: Track progress, engagement, learning objectives
+  2. Lesson Planning: Create pedagogically sound lesson plans
+  3. Progress Analysis: Analyze learning patterns, flag struggling students
+  4. Parent Communication: Generate reports, write messages
+  5. Scheduling: Manage lesson scheduling
+  6. Notion Integration: Sync with Notion database
+  
+  Your approach:
+  - Always be data-driven when analyzing student progress
+  - Provide actionable recommendations
+  - Respect pedagogical best practices
+  - Maintain confidentiality (GDPR compliant)
+  
+  You have access to:
+  - Notion database for student records
+  - File operations for documents
+  - Shell commands for automation
+  - Python for calculations
+  
+  When uncertain, ask clarifying questions.
+
+# Tools & Capabilities
+tools:
+  # File operations
+  - type: read_file
+  - type: write_file
+  - type: list_directory
+  
+  # Shell commands
+  - type: shell
+    allow_list:
+      - python
+      - curl
+      - git
+  
+  # Notion integration
+  - type: mcp/notion
+    config:
+      api_key: ${NOTION_API_KEY}
+  
+  # Python execution
+  - type: python
+    packages:
+      - pandas
+      - numpy
+
+# Memory & Learning
+memory:
+  enabled: true
+  type: vector
+  persistence:
+    location: ./agent_memory
+    backup_interval: 3600
+
+# Reasoning
+thinking:
+  enabled: true
+  max_depth: 5
+
+# Resilience
+resilience:
+  max_retries: 3
+  timeout_seconds: 60
+  circuit_breaker: true
+  fallback_on_error: true
+
+# Logging
+logging:
+  level: "INFO"
+  outputs:
+    - type: console
+    - type: file
+      path: ./logs/agent.log
+      max_size_mb: 100
+      backup_count: 5
+
+# Environment variables
+environment:
+  NOTION_API_KEY: ${NOTION_API_KEY}
+  NOTION_DATABASE_ID: ${NOTION_DATABASE_ID}
+  AGENT_MODE: "autonomous"
+  AGENT_LOG_LEVEL: "INFO"

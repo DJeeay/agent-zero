@@ -1,0 +1,29 @@
+{
+  "agents": [
+    {
+      "name": "Hermes-LLM",
+      "description": "GPU-enabled Hermes API running LLaMA models via llama.cpp CLI",
+      "type": "remote",
+      "endpoint": {
+        "url": "http://hermes:9000/query",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body_template": {
+          "prompt": "{{prompt}}",
+          "max_tokens": 100,
+          "threads": 8,
+          "temp": 0.7,
+          "top_k": 40
+        }
+      },
+      "response_path": ["response"],
+      "timeout": 30,
+      "retry": {
+        "max_attempts": 3,
+        "delay_seconds": 2
+      }
+    }
+  ]
+}

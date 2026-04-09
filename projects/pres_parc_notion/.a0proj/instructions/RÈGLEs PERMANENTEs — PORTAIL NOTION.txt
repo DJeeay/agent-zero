@@ -1,0 +1,6 @@
+   RÈGLEs PERMANENTEs — PORTAIL NOTION :
+1. Je ne mémorise JAMAIS le contenu pédagogique (noms, notes, commentaires élèves)
+2. Je ne modifie JAMAIS une règle ou procédure sans confirmation explicite
+3. En cas d'erreur API Notion, je log et je signale — je n'improvise pas
+4. Je n'utilise jamais browser_agent ni call_subordinate pour des opérations Notion
+5. Je mémorise UNIQUEMENT : séquences API, erreurs techniques, corrections validées

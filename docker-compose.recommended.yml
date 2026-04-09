@@ -1,0 +1,181 @@
+version: '3.8'
+
+services:
+  # Service LLM Principal - Production
+  llama-server:
+    image: ghcr.io/ggml-org/llama.cpp:full-cuda
+    container_name: llama-server
+    ports:
+      - "8080:8080"
+    
+    # Volumes
+    volumes:
+      - d:/llm_models:/models:ro
+    
+    # Variables d'environnement
+    environment:
+      CUDA_VISIBLE_DEVICES: 0
+    
+    # Configuration LLM
+    command: >
+      --server
+      -m /models/Hermes-3-Llama-3.1-8B.Q4_K_M.gguf
+      --host 0.0.0.0
+      --port 8080
+      -c 16384
+      --n-gpu-layers 20
+      --threads 8
+    
+    # Limites de ressources (IMPORTANT)
+    deploy:
+      resources:
+        limits:
+          memory: 12G
+          cpus: '4'
+        reservations:
+          memory: 8G
+          cpus: '2'
+    
+    # GPU Support
+    runtime: nvidia
+    # OU pour les nouvelles versions
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    
+    # Health Check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    
+    # Politique de redémarrage
+    restart: unless-stopped
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+    
+    # Réseau
+    networks:
+      - hermes-net
+    
+    labels:
+      service: "llm-inference"
+      version: "1.0"
+
+  # Service Agent Autonome - Production
+  agent-zero:
+    image: agent0ai/agent-zero:latest
+    container_name: agent-zero
+    ports:
+      - "50080:80"
+    
+    # Volumes persistants
+    volumes:
+      - agent0-state:/app/state
+    
+    # Politique de redémarrage
+    restart: unless-stopped
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "2"
+    
+    # Dépendances
+    depends_on:
+      llama-server:
+        condition: service_healthy
+    
+    # Réseau
+    networks:
+      - hermes-net
+      - agent-net
+    
+    labels:
+      service: "agent"
+      version: "1.0"
+
+  # (OPTIONNEL) Load Balancer - Pour si on réactive llamacpp
+  nginx-lb:
+    image: nginx:latest
+    container_name: nginx-lb
+    ports:
+      - "8000:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - llama-server
+    networks:
+      - hermes-net
+    restart: unless-stopped
+    profiles:
+      - load-balancer  # Activé uniquement si: docker compose --profile load-balancer up
+
+# Réseaux
+networks:
+  hermes-net:
+    driver: bridge
+  
+  agent-net:
+    driver: bridge
+
+# Volumes nommés
+volumes:
+  agent0-state:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./agent0_state
+
+# --- INSTRUCTIONS D'UTILISATION ---
+#
+# 1. DÉMARRER (avec health check)
+#    docker compose up -d
+#
+# 2. VÉRIFIER LES LOGS
+#    docker compose logs -f llama-server
+#    docker compose logs -f agent-zero
+#
+# 3. ARRÊTER
+#    docker compose down
+#
+# 4. REDÉMARRER UN SERVICE
+#    docker compose restart llama-server
+#
+# 5. MONITORER
+#    docker compose stats
+#    docker stats
+#
+# 6. ACTIVER LOAD BALANCER (futur)
+#    docker compose --profile load-balancer up -d
+#
+# --- VARIABLES À ADAPTER ---
+#
+# - d:/llm_models → chemin vers vos modèles
+# - Hermes-3-Llama-3.1-8B.Q4_K_M.gguf → votre modèle
+# - agent0-state → chemin état Agent-Zero
+# - CUDA_VISIBLE_DEVICES → votre GPU (0, 1, etc.)
+#
+# --- NOTES IMPORTANTES ---
+#
+# ✅ Mémoire: 12GB hard limit pour éviter crash système
+# ✅ GPU: CUDA_VISIBLE_DEVICES=0 (dedicated)
+# ✅ Restart: unless-stopped (auto-recovery)
+# ✅ Health Check: curl /health (10s interval)
+# ✅ Logging: Limité à 100MB par fichier (3 fichiers max)
+# ✅ Networks: Isolés par service (sécurité)
+#

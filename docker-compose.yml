@@ -1,0 +1,63 @@
+version: '3.9'
+
+services:
+  llama-server:
+    image: ghcr.io/ggml-org/llama.cpp:full-cuda
+    container_name: llama-server
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./llm_models:/models:ro
+    environment:
+      CUDA_VISIBLE_DEVICES: "0"
+    command: >
+      --server 
+      -m /models/Hermes-3-Llama-3.1-8B.Q4_K_M.gguf 
+      --host 0.0.0.0 
+      --port 8080 
+      --ctx-size 16384 
+      --n-gpu-layers 35 
+      --threads 8
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 12G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - agent-network
+
+  hermes:
+    image: python:3.11-slim
+    container_name: hermes
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    depends_on:
+      - llama-server
+    environment:
+      LLAMA_URL: "http://llama-server:8080"
+      ADAPTER_PORT: "9000"
+      MODEL_NAME: "hermes-3"
+      LOG_LEVEL: "INFO"
+    volumes:
+      - ./adapter:/app:ro
+    working_dir: /app
+    command: >
+      sh -c "pip install -q -r requirements.txt && uvicorn adapter:app --host 0.0.0.0 --port 9000"
+    networks:
+      - agent-network
+
+networks:
+  agent-network:
+    driver: bridge

@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  agent-zero:
+    image: agent0ai/agent-zero:latest
+    container_name: agent-zero
+    restart: unless-stopped
+    ports:
+      - "50080:80"
+    volumes:
+      - agent0-volume:/a0
+      - ./agent-zero-config.json:/a0/config.json:ro
+    environment:
+      # LLM Configuration
+      LLM_API_URL: "http://llama-server:8080"
+      LLM_API_TYPE: "openai-compatible"
+      LLM_MODEL: "Hermes-3-Llama-3.1-8B"
+      AGENT_LOG_LEVEL: "INFO"
+    depends_on:
+      - llama-server
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - llm-network
+
+  llama-server:
+    image: ghcr.io/ggml-org/llama.cpp:full-cuda
+    container_name: llama-server
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - d:/llm_models:/models:ro
+    environment:
+      CUDA_VISIBLE_DEVICES: "0"
+    command: >
+      --server
+      -m /models/Hermes-3-Llama-3.1-8B.Q4_K_M.gguf
+      --host 0.0.0.0
+      --port 8080
+      --ctx-size 16384
+      --n-gpu-layers 20
+      --threads 8
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 12G
+        reservations:
+          cpus: '2'
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - llm-network
+
+networks:
+  llm-network:
+    driver: bridge
+    name: llm-network
+
+volumes:
+  agent0-volume:
+    name: agent0-volume

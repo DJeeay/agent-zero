@@ -1,0 +1,35 @@
+# OpenCode CLI Configuration pour Hermes-3 local via adaptateur FastAPI
+# Placer ce fichier dans: ~/.config/opencode/config.yaml (global)
+# Ou: .opencode/config.yaml (projet local)
+
+models:
+  hermes-local:
+    name: "Hermes-3 Local"
+    provider: openai  # L'adaptateur est compatible OpenAI
+    base_url: http://localhost:9000/v1
+    api_key: dummy     # Requis par OpenCode mais ignoré par l'adaptateur
+    model: hermes-3    # Doit matcher MODEL_NAME dans docker-compose
+    
+  # Fallback vers API OpenAI si besoin
+  gpt-4o:
+    name: "GPT-4o"
+    provider: openai
+    api_key: ${OPENAI_API_KEY}
+    model: gpt-4o
+
+# Agent par défaut
+default_model: hermes-local
+
+# Configuration des agents OAC
+agents:
+  OpenAgent:
+    model: hermes-local
+    # Configuration spécifique pour tâches générales
+    
+  OpenCoder:
+    model: hermes-local
+    # Configuration pour développement production
+    
+  SystemBuilder:
+    model: hermes-local
+    # Configuration pour génération systèmes AI

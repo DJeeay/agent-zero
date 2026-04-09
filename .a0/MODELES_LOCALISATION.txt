@@ -1,0 +1,25 @@
+# 📍 LOCALISATION MODÈLES LLM
+# Découvert depuis container llama-server actif
+
+MODELES_DOSSIER = "d:/llm_models"
+MODELE_ACTIF = "Hermes-3-Llama-3.1-8B.Q4_K_M.gguf"
+PORT_API = 8080
+STATUS = "✅ ACTIF et HEALTHY"
+
+# Configuration llama-server existante:
+# - Mount: d:/llm_models → /models (inside container)
+# - Modèle: Hermes-3-Llama-3.1-8B.Q4_K_M.gguf (8B)
+# - GPU: CUDA activé (--n-gpu-layers=20)
+# - Port: 8080 accessible
+# - Memory: 12GB RAM alloué
+# - Health: OK ✅
+
+# API Compatible:
+# - Endpoint: http://localhost:8080
+# - OpenAI-compatible: OUI
+# - Stream: OUI
+# - Chat completions: OUI
+
+# Agent Zero peut utiliser DIRECTEMENT:
+# base_url: "http://localhost:8080"
+# model: "hermes-3-llama-3.1-8b" (ou défaut)

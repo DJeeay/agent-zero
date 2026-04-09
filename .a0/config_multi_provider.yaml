@@ -1,0 +1,197 @@
+# Configuration Agent Zero avec Fallback Multi-Provider
+# À remplacer dans ~/.a0/config.yaml si fallback est activé
+
+provider: "multi"  # Multi-provider avec fallback automatique
+default_model: "hermes-3-llama-3.1-8b"
+
+# === MULTI-PROVIDER CONFIGURATION ===
+multi_provider:
+  enabled: true
+  strategy: "sequential"  # Try providers in order
+  fallback_on_error: true
+  fallback_on_timeout: true
+  
+  # Provider 1: PRIMARY (Hermes-3-8B)
+  providers:
+    - id: "primary"
+      name: "hermes-3-8b-llama"
+      type: "openai-compatible"
+      enabled: true
+      priority: 1
+      config:
+        base_url: "http://localhost:8080"
+        model: "hermes-3-llama-3.1-8b"
+        api_key: "local"
+      performance:
+        expected_latency_ms: 50
+        max_timeout_s: 5
+        max_retries: 1
+      fallback:
+        on_timeout: true
+        on_500_error: true
+        on_connection_refused: true
+        on_rate_limit: false
+      health_check:
+        enabled: true
+        endpoint: "/health"
+        interval_s: 10
+        timeout_s: 2
+
+    # Provider 2: FALLBACK1 (Hermes-3.2-3B)
+    - id: "fallback1"
+      name: "hermes-3.2-3b-light"
+      type: "openai-compatible"
+      enabled: true
+      priority: 2
+      config:
+        base_url: "http://localhost:8081"
+        model: "hermes-3-llama-3.2-3b"
+        api_key: "local"
+      performance:
+        expected_latency_ms: 150
+        max_timeout_s: 8
+        max_retries: 1
+      fallback:
+        on_timeout: true
+        on_500_error: true
+        on_connection_refused: true
+        on_rate_limit: false
+      health_check:
+        enabled: true
+        endpoint: "/health"
+        interval_s: 10
+        timeout_s: 2
+
+    # Provider 3: FALLBACK2 (Qwen-7B)
+    - id: "fallback2"
+      name: "qwen-7b-instruct"
+      type: "openai-compatible"
+      enabled: true
+      priority: 3
+      config:
+        base_url: "http://localhost:8082"
+        model: "qwen2.5-7b-instruct"
+        api_key: "local"
+      performance:
+        expected_latency_ms: 100
+        max_timeout_s: 10
+        max_retries: 0
+      fallback:
+        on_timeout: true
+        on_500_error: true
+        on_connection_refused: true
+        on_rate_limit: false
+      health_check:
+        enabled: true
+        endpoint: "/health"
+        interval_s: 10
+        timeout_s: 2
+
+# === FALLBACK GLOBAL SETTINGS ===
+fallback_settings:
+  enabled: true
+  strategy: "sequential"
+  max_total_timeout_s: 30  # Total time before giving up
+  timeout_per_provider_s: 5
+  health_check_interval_s: 10
+  cache_failed_providers: true
+  failed_provider_ttl_s: 60
+  log_fallback_events: true
+  log_level: "INFO"
+  
+# === RETRY STRATEGY ===
+retry:
+  enabled: true
+  max_retries: 2
+  backoff_factor: 1.5
+  backoff_max_s: 10
+  jitter: true
+
+# === LOGGING ===
+logging:
+  level: "DEBUG"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "~/.a0/logs/agent_zero_multi_provider.log"
+  max_size_mb: 100
+  backup_count: 5
+  handlers:
+    - type: "file"
+      level: "DEBUG"
+    - type: "console"
+      level: "INFO"
+
+# === EXTENSIONS AVEC FALLBACK ===
+extensions:
+  memorize_solutions:
+    enabled: true
+    use_fallback: true
+    max_fallback_depth: 3
+    provider_order:
+      - "primary"
+      - "fallback1"
+      - "fallback2"
+    model_overrides:
+      primary: "hermes-3-llama-3.1-8b"
+      fallback1: "hermes-3-llama-3.2-3b"
+      fallback2: "qwen2.5-7b-instruct"
+    
+  code_generation:
+    enabled: true
+    use_fallback: true
+    max_fallback_depth: 2
+    provider_order:
+      - "primary"
+      - "fallback2"  # Qwen mieux pour code que 3B
+      - "fallback1"
+    
+  summarization:
+    enabled: true
+    use_fallback: true
+    max_fallback_depth: 3
+    provider_order:
+      - "primary"
+      - "fallback1"
+      - "fallback2"
+
+# === FALLBACK MONITORING ===
+monitoring:
+  enabled: true
+  metrics:
+    - "fallback_count"
+    - "provider_latency"
+    - "provider_availability"
+    - "error_rate_per_provider"
+  export_interval_s: 60
+  alerting:
+    enabled: true
+    alert_on_all_providers_down: true
+    alert_on_primary_down: true
+    alert_channel: "logs"  # or "webhook", "email", etc.
+
+# === PERFORMANCE TUNING ===
+performance:
+  request_timeout_seconds: 30
+  max_concurrent_requests: 3
+  enable_caching: true
+  cache_ttl_s: 300
+  batch_processing: false
+  
+# === SINGLE PROVIDER MODE (for testing/fallback disabled) ===
+# Uncomment to disable fallback and use single provider:
+# openai_compatible:
+#   enabled: true
+#   base_url: "http://localhost:8080"
+#   model: "hermes-3-llama-3.1-8b"
+#   api_key: "local"
+
+# === DEPRECATED CONFIG (kept for reference) ===
+# Older single-provider configs - DO NOT USE if multi_provider enabled
+# openrouter:
+#   enabled: false
+#   api_key: ""
+# openai:
+#   enabled: false
+#   api_key: ""
+# ollama:
+#   enabled: false
+#   base_url: "http://localhost:11434"

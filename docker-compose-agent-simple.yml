@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  llm-server:
+    image: ghcr.io/ggml-org/llama.cpp:full-cuda
+    container_name: llm-server-presparc
+    ports:
+      - "8080:8080"
+    
+    volumes:
+      - d:/llm_models:/models:ro
+    
+    environment:
+      CUDA_VISIBLE_DEVICES: "0"
+    
+    command: >
+      --server
+      -m /models/Hermes-3-Llama-3.1-8B.Q4_K_M.gguf
+      --host 0.0.0.0
+      --port 8080
+      --ctx-size 16384
+      --n-gpu-layers 20
+      --threads 8
+    
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 12G
+        reservations:
+          cpus: '2'
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    
+    restart: unless-stopped
+    networks:
+      - presparc-net
+
+  presparc-agent:
+    image: docker/cagent:latest
+    container_name: presparc-agent
+    ports:
+      - "8000:8000"
+    
+    volumes:
+      - ./cagent.yaml:/app/cagent.yaml:ro
+      - ./agent_memory:/app/agent_memory
+      - ./logs:/app/logs
+    
+    environment:
+      AGENT_MODE: "autonomous"
+      AGENT_LOG_LEVEL: "INFO"
+      # Local LLM endpoint (OpenAI-compatible)
+      OPENAI_API_BASE: "http://llm-server-presparc:8080/v1"
+      OPENAI_API_KEY: "local"
+      # Notion integration
+      NOTION_API_KEY: ${NOTION_API_KEY}
+      NOTION_DATABASE_ID: ${NOTION_DATABASE_ID}
+      # Fallback providers (optional)
+      # ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      # OPENAI_API_KEY_FALLBACK: ${OPENAI_API_KEY}
+    
+    depends_on:
+      llm-server:
+        condition: service_healthy
+    
+    restart: unless-stopped
+    networks:
+      - presparc-net
+
+networks:
+  presparc-net:
+    driver: bridge

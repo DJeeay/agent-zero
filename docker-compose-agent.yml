@@ -1,0 +1,162 @@
+version: '3.8'
+
+# Docker Agent Setup for Présence-Parcours
+# Unified AI stack: Docker Agent + Local LLM + Tools
+# Run with: docker compose up -d
+
+services:
+  # ═════════════════════════════════════════════════════════════════════════════
+  # Local LLM Server (Docker Model Runner)
+  # Replaces: Ollama, llama-server, Hermes Agent
+  # ═════════════════════════════════════════════════════════════════════════════
+  
+  llm-server:
+    image: ghcr.io/ggml-org/llama.cpp:full-cuda
+    container_name: llm-server
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    
+    volumes:
+      - d:/llm_models:/models:ro
+    
+    environment:
+      CUDA_VISIBLE_DEVICES: "0"
+    
+    # Hermes 3.1-8B model
+    command: >
+      --server
+      -m /models/Hermes-3-Llama-3.1-8B.Q4_K_M.gguf
+      --host 0.0.0.0
+      --port 8080
+      --ctx-size 16384
+      --n-gpu-layers 20
+      --threads 8
+    
+    # Resource limits (prevent system crash)
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 12G
+        reservations:
+          cpus: '2'
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    
+    networks:
+      - agent-network
+    
+    labels:
+      service: "llm"
+      version: "1.0"
+
+  # ═════════════════════════════════════════════════════════════════════════════
+  # Docker Agent (cagent)
+  # The unified orchestrator
+  # ═════════════════════════════════════════════════════════════════════════════
+  
+  presparc-agent:
+    image: docker/cagent:latest
+    container_name: presparc-agent
+    restart: unless-stopped
+    ports:
+      - "8000:8000"  # API endpoint
+    
+    # Mount configuration and logs
+    volumes:
+      - ./cagent.yaml:/agent/cagent.yaml:ro
+      - ./agent_memory:/agent/agent_memory
+      - ./logs:/agent/logs
+    
+    environment:
+      # Notion configuration
+      NOTION_API_KEY: ${NOTION_API_KEY:-}
+      NOTION_DATABASE_ID: ${NOTION_DATABASE_ID:-}
+      
+      # OpenAI (fallback)
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      
+      # Anthropic (fallback)
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      
+      # LLM routing (point to local server)
+      LLM_API_URL: "http://llm-server:8080"
+      LLM_API_TYPE: "openai-compatible"
+      
+      # Agent behavior
+      AGENT_MODE: "autonomous"
+      AGENT_LOG_LEVEL: "INFO"
+    
+    # Depends on LLM server being healthy
+    depends_on:
+      llm-server:
+        condition: service_healthy
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    networks:
+      - agent-network
+    
+    labels:
+      service: "agent"
+      version: "1.0"
+
+# ═════════════════════════════════════════════════════════════════════════════
+# NETWORKS
+# ═════════════════════════════════════════════════════════════════════════════
+
+networks:
+  agent-network:
+    driver: bridge
+    name: agent-network
+
+# ═════════════════════════════════════════════════════════════════════════════
+# VOLUMES (persisted storage)
+# ═════════════════════════════════════════════════════════════════════════════
+
+volumes:
+  llm-models:
+    driver: local
+  agent-memory:
+    driver: local
+
+# ═════════════════════════════════════════════════════════════════════════════
+# QUICK START INSTRUCTIONS
+# ═════════════════════════════════════════════════════════════════════════════
+#
+# 1. START:
+#    docker compose up -d
+#
+# 2. VERIFY:
+#    docker compose ps
+#    docker compose logs -f presparc-agent
+#
+# 3. TEST:
+#    curl http://localhost:8000/health
+#
+# 4. INTERACT:
+#    docker compose exec presparc-agent cagent interact
+#    > Sync all students from Notion
+#    > Create lesson plan for tomorrow
+#    > Analyze student progress this week
+#
+# 5. STOP:
+#    docker compose down
+#
+# ═════════════════════════════════════════════════════════════════════════════

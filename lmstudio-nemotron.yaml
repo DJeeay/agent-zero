@@ -1,0 +1,48 @@
+# Configuration OpenAgents pour LM Studio + Nemotron 3 Nano
+# Agent: lmstudio-nemotron
+# LM Studio API: http://localhost:1234/v1 (OpenAI-compatible)
+
+name: lmstudio-nemotron
+type: opencode
+role: worker
+
+# Configuration LLM via LM Studio
+llm:
+  provider: openai
+  base_url: http://localhost:1234/v1
+  api_key: dummy
+  model: nemotron-3-nano
+
+  # Parametres de generation
+  temperature: 0.7
+  max_tokens: 2048
+  top_p: 0.9
+
+  # Timeouts
+  timeout: 60
+
+  # Retry config
+  max_retries: 2
+
+# Capacites de l'agent
+capabilities:
+  - code
+  - terminal
+  - file_system
+  - memory
+
+# Contexte systeme par defaut
+system_prompt: |
+  Tu es un agent OpenAgents utilisant le modele NVIDIA Nemotron 3 Nano 4B via LM Studio.
+  Tu executes des taches sur le projet situe dans D:\openagents.
+
+  Caracteristiques du modele:
+  - Nom: Nemotron 3 Nano 4B (nvidia/Nemotron-3-4B)
+  - 4 milliards de parametres
+  - Optimise pour les taches de raisonnement et code
+  - Execution locale via LM Studio
+
+  Sois concis et efficace dans tes reponses.
+
+# Logging
+log_level: INFO

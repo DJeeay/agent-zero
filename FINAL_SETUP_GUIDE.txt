@@ -1,0 +1,175 @@
+════════════════════════════════════════════════════════════════════════════════
+                    🔗 HERMES + NOTION - FINAL SETUP (5 MIN)
+════════════════════════════════════════════════════════════════════════════════
+
+✅ EVERYTHING IS READY. JUST NEED YOUR DATABASE ID.
+
+════════════════════════════════════════════════════════════════════════════════
+
+🎯 STEP 1: GET YOUR NOTION DATABASE ID (1 MINUTE)
+
+  1. Open in browser: https://notion.so
+  2. Find your student database
+  3. Click to open it
+  4. Look at the URL in your browser address bar
+  
+  EXAMPLE URL:
+  https://notion.so/3a1a2b3c4d5e6f7g8h9i0j?v=1234567890
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+                    THIS IS YOUR DATABASE ID
+  
+  Copy the database ID (the long alphanumeric string before ?v=)
+  
+  Your ID will look like:
+  a1b2c3d4e5f6g7h8i9j0
+
+════════════════════════════════════════════════════════════════════════════════
+
+🎯 STEP 2: EDIT .env FILE (30 SECONDS)
+
+  Option A: Using notepad
+  ─────────────────────
+  1. Open File Explorer
+  2. Navigate to: D:\DOCKER Cont 1 AZ
+  3. Find file: .env
+  4. Right-click → Open with → Notepad
+  5. Find the line: NOTION_DATABASE_ID=
+  6. Paste your ID after the equals sign:
+     NOTION_DATABASE_ID=a1b2c3d4e5f6g7h8i9j0
+  7. Save the file (Ctrl+S)
+  
+  Option B: Using PowerShell
+  ────────────────────────
+  Run this command:
+  
+  $id = Read-Host "Paste your Notion database ID"
+  $env:NOTION_DATABASE_ID = $id
+  (Get-Content .env) -replace 'NOTION_DATABASE_ID=.*', "NOTION_DATABASE_ID=$id" | Set-Content .env
+
+════════════════════════════════════════════════════════════════════════════════
+
+🎯 STEP 3: RUN HERMES WITH NOTION ACCESS (30 SECONDS)
+
+  Open PowerShell/Command Prompt
+  Navigate to: D:\DOCKER Cont 1 AZ
+  Type:
+  
+  python hermes_agent_with_notion.py
+
+════════════════════════════════════════════════════════════════════════════════
+
+✅ IF IT WORKS:
+
+  You'll see:
+  
+  ======================================================================
+  🧠 HERMES 3.1-8B - PRÉSENCE-PARCOURS AGENT
+  ======================================================================
+  Model: Hermes 3.1-8B (Local GPU)
+  API: http://localhost:8080/v1/chat/completions
+  ✅ Notion Database: Connected & Ready         ← THIS MEANS SUCCESS!
+  ======================================================================
+
+════════════════════════════════════════════════════════════════════════════════
+
+💬 NOW YOU CAN USE HERMES TO MANAGE YOUR STUDENTS:
+
+  Type in Hermes:
+  
+  "List all students"
+  → Shows all students from your Notion database
+  
+  "Analyze student progress"
+  → Pulls real data, analyzes performance
+  
+  "Who needs support?"
+  → Queries database, identifies struggling students
+  
+  "Generate parent report for [name]"
+  → Creates professional report from real data
+  
+  "Create intervention plan"
+  → Uses actual student data for recommendations
+  
+  "help"
+  → Shows all available commands
+
+════════════════════════════════════════════════════════════════════════════════
+
+🔧 IF SOMETHING GOES WRONG:
+
+  "❌ Notion Database: Connection Failed"
+  ─────────────────────────────────────
+  → Check your database ID spelling
+  → Make sure you added it to .env correctly
+  → Save .env and restart
+
+  "Connection error"
+  ─────────────────
+  → Make sure LLM is running:
+    docker compose -f docker-compose-llm-only.yml ps
+  
+  → Start LLM if needed:
+    docker compose -f docker-compose-llm-only.yml up -d
+
+════════════════════════════════════════════════════════════════════════════════
+
+📋 COMPLETE FILE CHECKLIST:
+
+  ✅ hermes_agent_with_notion.py    (Your agent - created)
+  ✅ docker-compose-llm-only.yml    (Docker setup - created)
+  ✅ .env                           (Config file - created)
+  ✅ NOTION_API_KEY                 (Set to your API key)
+  ✅ NOTION_DATABASE_ID             (Needs your database ID)
+
+════════════════════════════════════════════════════════════════════════════════
+
+🎓 WHAT YOUR SYSTEM CAN DO:
+
+  YOUR SETUP:
+  Notion Database ←→ Hermes Agent ←→ Your Commands
+  (Cloud)           (Local GPU, D:)  (Student management)
+
+  CAPABILITIES:
+  • Query students in real-time
+  • Analyze performance data
+  • Generate professional reports
+  • Update student records
+  • Create lesson plans from data
+  • Identify struggling students
+  • Suggest interventions
+  • Everything with REAL DATA
+
+════════════════════════════════════════════════════════════════════════════════
+
+⚡ QUICK REFERENCE:
+
+  Start Hermes:
+    python hermes_agent_with_notion.py
+
+  Check LLM status:
+    docker compose -f docker-compose-llm-only.yml ps
+
+  View LLM logs:
+    docker compose -f docker-compose-llm-only.yml logs -f
+
+  Stop LLM:
+    docker compose -f docker-compose-llm-only.yml down
+
+  Inside Hermes:
+    "help" - Show commands
+    "status" - Check connections
+    "exit" - Quit
+
+════════════════════════════════════════════════════════════════════════════════
+
+✨ YOU'RE FULLY READY!
+
+All you need to do:
+  1. Get database ID (1 minute)
+  2. Add to .env (30 seconds)
+  3. Run: python hermes_agent_with_notion.py
+
+Then start managing your students with AI!
+
+════════════════════════════════════════════════════════════════════════════════

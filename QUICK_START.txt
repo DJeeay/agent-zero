@@ -1,0 +1,99 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                   PRESPARC DOCKER AGENT - QUICK START                      ║
+║                         (All files on D: drive)                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+🎯 THREE SIMPLE STEPS:
+
+  Step 1: LLM is already running ✅
+  Step 2: Run agent:
+          python presparc_agent.py
+  Step 3: Start chatting!
+
+───────────────────────────────────────────────────────────────────────────────
+
+💬 EXAMPLE COMMANDS:
+
+  "What can you do?"
+  "Create a lesson plan for Grade 5"
+  "Analyze student progress"
+  "Sync Notion database"
+  "Check status"
+  "help" (list all commands)
+  "exit" (quit)
+
+───────────────────────────────────────────────────────────────────────────────
+
+🔧 MANAGEMENT COMMANDS:
+
+  Start LLM:
+  docker compose -f docker-compose-llm-only.yml up -d
+
+  Check LLM health:
+  curl http://localhost:8080/health
+
+  View LLM logs:
+  docker compose -f docker-compose-llm-only.yml logs -f llm-server-presparc
+
+  Stop LLM:
+  docker compose -f docker-compose-llm-only.yml down
+
+───────────────────────────────────────────────────────────────────────────────
+
+📋 YOUR CONFIGURATION:
+
+  Location:           D:\DOCKER Cont 1 AZ
+  LLM Model:          Hermes 3.1-8B (on GPU)
+  LLM Port:           8080 (localhost)
+  Notion API Key:     ✅ CONFIGURED
+  Notion Database ID: (in .env file)
+  Python Agent:       presparc_agent.py
+
+───────────────────────────────────────────────────────────────────────────────
+
+✅ WHAT'S INCLUDED:
+
+  ✓ Local LLM (Hermes 3.1-8B) - GPU accelerated
+  ✓ Python Agent - Notion integration
+  ✓ Conversation memory - Learns from interactions
+  ✓ File operations - Read/write documents
+  ✓ Status monitoring - Health checks
+  ✓ All data on D: - No cloud dependency
+
+───────────────────────────────────────────────────────────────────────────────
+
+🚀 GET STARTED NOW:
+
+  python presparc_agent.py
+
+───────────────────────────────────────────────────────────────────────────────
+
+❓ COMMON QUESTIONS:
+
+  Q: Is LLM running?
+  A: docker compose -f docker-compose-llm-only.yml ps
+
+  Q: Why isn't Notion working?
+  A: Check .env has NOTION_DATABASE_ID set
+
+  Q: Where are my files?
+  A: All on D:\DOCKER Cont 1 AZ (agent_memory/, logs/)
+
+  Q: Can I stop the LLM?
+  A: Yes: docker compose -f docker-compose-llm-only.yml down
+
+───────────────────────────────────────────────────────────────────────────────
+
+📞 NEED HELP?
+
+  View logs:     docker logs llm-server-presparc
+  Check status:  curl http://localhost:8080/health
+  Agent help:    Type "help" in agent
+  Exit agent:    Type "exit"
+
+───────────────────────────────────────────────────────────────────────────────
+
+              YOU'RE 100% READY. GO BUILD YOUR PRESPARC SYSTEM!
+
+                                🚀
+╔════════════════════════════════════════════════════════════════════════════╗

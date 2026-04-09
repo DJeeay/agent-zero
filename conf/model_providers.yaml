@@ -59,9 +59,52 @@ chat:
   moonshot:
     name: Moonshot AI
     litellm_provider: moonshot
+  
+  # NVIDIA NIM - High Performance Models (Free tier available)
+  nvidia:
+    name: NVIDIA NIM (Primary)
+    litellm_provider: openai
+    kwargs:
+      api_base: https://api.nvidia.com/v1
+  
+  nvidia_llama31_405b:
+    name: NVIDIA - Llama 3.1 405B Instruct
+    litellm_provider: openai
+    kwargs:
+      api_base: https://api.nvidia.com/v1
+  
+  nvidia_llama31_70b:
+    name: NVIDIA - Llama 3.1 70B Instruct
+    litellm_provider: openai
+    kwargs:
+      api_base: https://api.nvidia.com/v1
+  
+  nvidia_llama31_8b:
+    name: NVIDIA - Llama 3.1 8B Instruct
+    litellm_provider: openai
+    kwargs:
+      api_base: https://api.nvidia.com/v1
+  
+  nvidia_nemotron_340b:
+    name: NVIDIA - Nemotron 4 340B Instruct
+    litellm_provider: openai
+    kwargs:
+      api_base: https://api.nvidia.com/v1
+  
+  nvidia_nemotron_70b:
+    name: NVIDIA - Nemotron 70B Instruct
+    litellm_provider: openai
+    kwargs:
+      api_base: https://api.nvidia.com/v1
   ollama:
     name: Ollama
     litellm_provider: ollama
+  llama_cpp:
+    name: Llama.cpp Server (Local)
+    litellm_provider: openai
+    kwargs:
+      api_base: http://llama-server:8080/v1
+      api_key: sk-local-dummy
   openai:
     name: OpenAI
     litellm_provider: openai
@@ -73,6 +116,80 @@ chat:
     litellm_provider: bedrock
   openrouter:
     name: OpenRouter
+    litellm_provider: openrouter
+    kwargs:
+      extra_headers:
+        "HTTP-Referer": "https://agent-zero.ai/"
+        "X-Title": "Agent Zero"
+  
+  # OpenRouter Free Models - No credits required
+  openrouter_llama32_free:
+    name: OpenRouter - Llama 3.2 3B (Free)
+    litellm_provider: openrouter
+    kwargs:
+      extra_headers:
+        "HTTP-Referer": "https://agent-zero.ai/"
+        "X-Title": "Agent Zero"
+  
+  openrouter_llama31_free:
+    name: OpenRouter - Llama 3.1 8B (Free)
+    litellm_provider: openrouter
+    kwargs:
+      extra_headers:
+        "HTTP-Referer": "https://agent-zero.ai/"
+        "X-Title": "Agent Zero"
+  
+  openrouter_gemma_free:
+    name: OpenRouter - Gemma 2B (Free)
+    litellm_provider: openrouter
+    kwargs:
+      extra_headers:
+        "HTTP-Referer": "https://agent-zero.ai/"
+        "X-Title": "Agent Zero"
+  
+  openrouter_mistral_free:
+    name: OpenRouter - Mistral 7B (Free)
+    litellm_provider: openrouter
+    kwargs:
+      extra_headers:
+        "HTTP-Referer": "https://agent-zero.ai/"
+        "X-Title": "Agent Zero"
+  
+  openrouter_phi3_free:
+    name: OpenRouter - Phi-3 Mini (Free)
+    litellm_provider: openrouter
+    kwargs:
+      extra_headers:
+        "HTTP-Referer": "https://agent-zero.ai/"
+        "X-Title": "Agent Zero"
+  
+  openrouter_deepseek_free:
+    name: OpenRouter - DeepSeek Chat (Free)
+    litellm_provider: openrouter
+    kwargs:
+      extra_headers:
+        "HTTP-Referer": "https://agent-zero.ai/"
+        "X-Title": "Agent Zero"
+  
+  # NVIDIA via OpenRouter - Free models
+  openrouter_nvidia_nemotron_nano:
+    name: OpenRouter - NVIDIA Nemotron Nano 9B (Free)
+    litellm_provider: openrouter
+    kwargs:
+      extra_headers:
+        "HTTP-Referer": "https://agent-zero.ai/"
+        "X-Title": "Agent Zero"
+  
+  openrouter_nvidia_nemotron_super:
+    name: OpenRouter - NVIDIA Nemotron Super 49B (Free)
+    litellm_provider: openrouter
+    kwargs:
+      extra_headers:
+        "HTTP-Referer": "https://agent-zero.ai/"
+        "X-Title": "Agent Zero"
+  
+  openrouter_nvidia_llama33_nemotron:
+    name: OpenRouter - NVIDIA Llama 3.3 Nemotron (Free)
     litellm_provider: openrouter
     kwargs:
       extra_headers:

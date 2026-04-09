@@ -40,3 +40,23 @@ agent_history.gif
 
 .agent/**
 .claude/**
+
+# Virtual Environments and Dependencies
+lib/
+Scripts/
+etc/
+share/
+Include/
+
+# IA Models and Tools
+llm_models/
+ollama/
+LM Studio/
+
+# Project temporary files
+workdir/
+uploads/
+*.json
+!settings.json
+!settings_full.json
+!agent-config.json

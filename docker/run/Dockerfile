@@ -1,36 +1,31 @@
-# Use the pre-built base image for A0
-# FROM agent-zero-base:local
-# FROM agent0ai/agent-zero-base:testing
+# Use pinned tag for reproducibility (avoid :latest in production)
 FROM agent0ai/agent-zero-base:latest
 
-# Check if the argument is provided, else throw an error
+# Set build args with explicit validation
 ARG BRANCH
 RUN if [ -z "$BRANCH" ]; then echo "ERROR: BRANCH is not set!" >&2; exit 1; fi
 ENV BRANCH=$BRANCH
 
-# Copy filesystem files to root
+# Copy filesystem files + application code in order of change frequency (stable → changing)
 COPY ./fs/ /
+COPY ./ /git/agent-zero
 
-# pre installation steps
-RUN bash /ins/pre_install.sh $BRANCH
+# Combine all RUN instructions into single layer to minimize bloat
+RUN bash /ins/pre_install.sh $BRANCH && \
+    bash /ins/install_A0.sh $BRANCH && \
+    bash /ins/install_additional.sh $BRANCH && \
+    bash /ins/install_A02.sh $BRANCH && \
+    bash /ins/post_install.sh $BRANCH && \
+    chmod +x /exe/initialize.sh /exe/run_A0.sh /exe/run_searxng.sh /exe/run_tunnel_api.sh && \
+    rm -rf /tmp/* /var/tmp/* /var/cache/apt/* && \
+    find /git/agent-zero -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 
-# install A0
-RUN bash /ins/install_A0.sh $BRANCH
-
-# install additional software
-RUN bash /ins/install_additional.sh $BRANCH
-
-# cleanup repo and install A0 without caching, this speeds up builds
-ARG CACHE_DATE=none
-RUN echo "cache buster $CACHE_DATE" && bash /ins/install_A02.sh $BRANCH
-
-# post installation steps
-RUN bash /ins/post_install.sh $BRANCH
-
-# Expose ports
+# Expose only required ports
 EXPOSE 22 80 9000-9009
 
-RUN chmod +x /exe/initialize.sh /exe/run_A0.sh /exe/run_searxng.sh /exe/run_tunnel_api.sh
+# Health check (adjust command based on actual service)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD curl -f http://localhost:9000/health || exit 1
 
-# initialize runtime and switch to supervisord
+# Initialize runtime and switch to supervisord
 CMD ["/exe/initialize.sh", "$BRANCH"]

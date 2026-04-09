@@ -1,0 +1,42 @@
+# Ignore common unwanted files globally
+**/.DS_Store
+**/.env
+**/__pycache__/
+*.py[cod]
+**/.conda/
+
+#Ignore IDE files
+.cursor/
+.windsurf/
+
+# ignore test files in root dir
+/*.test.py
+
+# Ignore all contents of the virtual environment directory
+.venv/
+
+# obsolete folders
+memory/
+knowledge/custom/
+instruments/
+
+# Handle logs directory
+logs/**
+!logs/**/
+
+# Handle tmp and usr directory
+tmp/**
+!tmp/**/
+usr/**
+!usr/**/
+
+# Handle knowledge directory
+
+# Global rule to include .gitkeep files anywhere
+!**/.gitkeep
+
+# for browser-use
+agent_history.gif
+
+.agent/**
+.claude/**

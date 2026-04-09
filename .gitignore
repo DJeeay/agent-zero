@@ -15,6 +15,9 @@
 
 # Ignore all contents of the virtual environment directory
 .venv/
+.venv.bak/
+venv/
+venv311/
 
 # obsolete folders
 /memory/
@@ -57,6 +60,7 @@ Scripts/
 etc/
 share/
 Include/
+*.whl
 
 # IA Models and Tools
 llm_models/

@@ -31,7 +31,7 @@ log = logging.getLogger("openai-adapter")
 app = FastAPI(
     title="OpenAI-Compatible Adapter",
     description="Adaptateur FastAPI pour exposer llama.cpp comme API OpenAI",
-    version="1.1.0",
+    version="1.0.0",
 )
 
 # ─── CORS ─────────────────────────────────────────────────────────────────────
@@ -64,7 +64,7 @@ class CompletionRequest(BaseModel):
     max_tokens: Optional[int] = 512
     stream: Optional[bool] = False
 
-# ─── Helper: messages → prompt (format ChatML pour Hermes-3) ──────────────────
+# ─── Helper: messages → prompt (format ChatML pour Hermes-3) ─────────────────────
 def messages_to_prompt(messages: List[Message]) -> str:
     """Convertit un tableau messages OpenAI en prompt texte pour llama.cpp."""
     parts = []
@@ -78,7 +78,7 @@ def messages_to_prompt(messages: List[Message]) -> str:
     parts.append("<|im_start|>assistant\n")
     return "\n".join(parts)
 
-# ─── Helper: build llama.cpp payload ──────────────────────────────────────────
+# ─── Helper: build llama.cpp payload ─────────────────────────────────────────
 def build_llama_payload(
     prompt: str,
     temperature: float,
@@ -92,42 +92,10 @@ def build_llama_payload(
         "temperature": temperature,
         "n_predict": max_tokens,
         "top_p": top_p,
-        "stream": stream,
-    }
-    # BUG FIX: stop tokens were never added to payload
-    if stop:
-        payload["stop"] = stop
-    # BUG FIX: missing return statement (was returning None → empty body → JSON parse error)
-    return payload
+    "stream": stream,
+}
 
-# ─── Helper: build OpenAI-compatible chat response ────────────────────────────
-def openai_chat_response(content: str, model: str) -> Dict[str, Any]:
-    """
-    BUG FIX: This function was called in chat_completions but never defined.
-    Builds an OpenAI-format chat completion response.
-    """
-    token_count = len(content.split())  # rough estimate
-    return {
-        "id": f"chatcmpl-{uuid.uuid4().hex[:12]}",
-        "object": "chat.completion",
-        "created": int(time.time()),
-        "model": model,
-        "choices": [{
-            "index": 0,
-            "message": {
-                "role": "assistant",
-                "content": content,
-            },
-            "finish_reason": "stop",
-        }],
-        "usage": {
-            "prompt_tokens": -1,   # llama.cpp doesn't expose this easily
-            "completion_tokens": token_count,
-            "total_tokens": token_count,
-        },
-    }
-
-# ─── Streaming generator ──────────────────────────────────────────────────────
+# Streaming generator
 async def stream_chat_chunks(
     prompt: str,
     req: ChatCompletionRequest,
@@ -159,7 +127,7 @@ async def stream_chat_chunks(
                         data = json.loads(data_str)
                     except json.JSONDecodeError:
                         continue
-
+                    # Extraction du token (support llama.cpp et format OpenAI/LM Studio)
                     token = data.get("content", "")
                     is_last = data.get("stop", False)
 
@@ -232,7 +200,6 @@ async def chat_completions(req: ChatCompletionRequest):
     """
     prompt = messages_to_prompt(req.messages)
     log.info("Chat request | model=%s stream=%s msgs=%d", req.model, req.stream, len(req.messages))
-
     if req.stream:
         return StreamingResponse(
             stream_chat_chunks(prompt, req),
@@ -242,7 +209,6 @@ async def chat_completions(req: ChatCompletionRequest):
                 "X-Accel-Buffering": "no",
             },
         )
-
     # Non-streaming
     payload = build_llama_payload(
         prompt=prompt,
@@ -262,7 +228,6 @@ async def chat_completions(req: ChatCompletionRequest):
     except httpx.HTTPStatusError as e:
         log.error("llama.cpp HTTP error %s: %s", e.response.status_code, e.response.text)
         raise HTTPException(e.response.status_code, e.response.text)
-
     data = resp.json()
     content = data.get("content", "").strip()
     log.info("Chat response | tokens_approx=%d", len(content.split()))
@@ -293,7 +258,12 @@ async def completions(req: CompletionRequest):
         "choices": [{"text": content, "index": 0, "logprobs": None, "finish_reason": "stop"}],
     }
 
-# ─── Legacy /query endpoint (compatibilité arrière) ───────────────────────────
+# ─── Legacy /query endpoint (compatibilité arrière) ──────────────────────────
+class LegacyQueryRequest(BaseModel):
+    prompt: str
+    max_tokens: int = 512
+    temp: float = 0.7
+
 @app.post("/query")
 async def legacy_query(request: Request):
     """Endpoint legacy /query — conservé pour compatibilité."""

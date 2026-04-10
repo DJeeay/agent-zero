@@ -74,3 +74,4 @@ uploads/
 !settings.json
 !settings_full.json
 !agent-config.json
+.aider*

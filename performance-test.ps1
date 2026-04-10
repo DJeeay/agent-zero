@@ -6,7 +6,7 @@ Write-Host "=== OpenAgents Performance Test ===" -ForegroundColor Green
 # Test Hermes agents
 Write-Host "`nTesting Hermes agents..." -ForegroundColor Yellow
 $env:OPENAI_BASE_URL = "http://localhost:9000/v1"
-$env:OPENAI_API_KEY = "dummy"
+if (-not $env:OPENAI_API_KEY) { $env:OPENAI_API_KEY = "lm-studio" }
 $env:NANOCLAW_MODEL = "hermes-3"
 
 $TestPrompts = @(
@@ -69,7 +69,7 @@ foreach ($prompt in $TestPrompts) {
 # Test Nemotron agent
 Write-Host "`nTesting Nemotron agent..." -ForegroundColor Yellow
 $env:OPENAI_BASE_URL = "http://localhost:1234/v1"
-$env:OPENAI_API_KEY = "dummy"
+$env:OPENAI_API_KEY = if ($env:LM_STUDIO_API_KEY) { $env:LM_STUDIO_API_KEY } else { "lm-studio" }
 $env:NANOCLAW_MODEL = "nvidia-nemotron-3-nano-4b"
 
 foreach ($prompt in $TestPrompts) {

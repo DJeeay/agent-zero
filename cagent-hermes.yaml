@@ -12,7 +12,7 @@ description: |
 model: openai/hermes-3
 model_config:
   base_url: http://localhost:9000/v1
-  api_key: "dummy"
+  api_key: ${OPENAI_API_KEY}
   temperature: 0.7
   max_tokens: 2048
   timeout: 120

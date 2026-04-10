@@ -142,7 +142,7 @@ chat:
     litellm_provider: openai
     kwargs:
       api_base: http://llama-server:8080/v1
-      api_key: sk-local-dummy
+      api_key: ${LLAMA_SERVER_API_KEY:-sk-local-dummy}
   openai:
     name: OpenAI
     litellm_provider: openai

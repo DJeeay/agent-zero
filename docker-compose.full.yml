@@ -52,10 +52,10 @@ services:
     environment:
       # Override Ollama with llama-server
       OPENAI_API_BASE: "http://llama-server:8080/v1"
-      OPENAI_API_KEY: "sk-dummy"
+      OPENAI_API_KEY: "${LLAMA_SERVER_API_KEY:-sk-dummy}"
       OPENAI_MODEL: "Hermes-3-Llama-3.1-8B"
       LLM_API_BASE_URL: "http://llama-server:8080/v1"
-      LLM_API_KEY: "sk-local-dummy"
+      LLM_API_KEY: "${LLAMA_SERVER_API_KEY:-sk-local-dummy}"
       LLM_MODEL: "Hermes-3-Llama-3.1-8B"
     depends_on:
       llama-server:

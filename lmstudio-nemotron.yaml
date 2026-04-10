@@ -10,7 +10,7 @@ role: worker
 llm:
   provider: openai
   base_url: http://localhost:1234/v1
-  api_key: dummy
+  api_key: ${LM_STUDIO_API_KEY}
   model: nemotron-3-nano
 
   # Parametres de generation

@@ -3,7 +3,7 @@ Write-Host "=== CORRECTION HERMES ===" -ForegroundColor Green
 
 # Configurer les variables pour Hermes
 $env:OPENAI_BASE_URL = "http://localhost:9000/v1"
-$env:OPENAI_API_KEY = "dummy"
+if (-not $env:OPENAI_API_KEY) { $env:OPENAI_API_KEY = "lm-studio" }
 $env:NANOCLAW_MODEL = "hermes-3"
 
 Write-Host "Configuration Hermes mise à jour" -ForegroundColor Cyan

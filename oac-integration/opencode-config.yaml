@@ -7,7 +7,7 @@ models:
     name: "Hermes-3 Local"
     provider: openai  # L'adaptateur est compatible OpenAI
     base_url: http://localhost:9000/v1
-    api_key: dummy     # Requis par OpenCode mais ignoré par l'adaptateur
+    api_key: ${LM_STUDIO_API_KEY}  # Set via LM Studio > Settings > Authentication
     model: hermes-3    # Doit matcher MODEL_NAME dans docker-compose
     
   # Fallback vers API OpenAI si besoin

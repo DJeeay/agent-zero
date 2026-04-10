@@ -7,7 +7,7 @@ models:
     name: "Hermes-3 Local"
     provider: openai  # L'adaptateur est compatible OpenAI
     base_url: http://localhost:9000/v1
-    api_key: ${LM_STUDIO_API_KEY}  # Set via LM Studio > Settings > Authentication
+    api_key: ${OPENAI_API_KEY}  # Must match cagent-hermes.yaml (same Hermes adapter on port 9000)
     model: hermes-3    # Doit matcher MODEL_NAME dans docker-compose
     
   # Fallback vers API OpenAI si besoin

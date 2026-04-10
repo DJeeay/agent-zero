@@ -3,7 +3,7 @@
   "description": "NVIDIA Nemotron 3 Nano via LM Studio",
   "type": "openai",
   "base_url": "http://localhost:1234/v1",
-  "api_key": "${LM_STUDIO_API_KEY}",
+  "api_key": "lm-studio",
   "model": "nvidia-nemotron-3-nano-4b",
   "timeout": 60,
   "max_tokens": 1024,
